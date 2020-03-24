@@ -18,17 +18,20 @@
     NSArray *params = [self componentsSeparatedByString:@"&"];
     NSMutableDictionary *paramsDict = [NSMutableDictionary dictionaryWithCapacity:[params count]];
     for (NSString *param in params) {
-        NSArray *pairs = [param componentsSeparatedByString:@"="];
-        if (pairs.count == 2) {
-            // e.g. ?key=value
-            NSString *key   = [pairs[0] DPL_stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-            NSString *value = [pairs[1] DPL_stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-            paramsDict[key] = value;
-        }
-        else if (pairs.count == 1) {
-            // e.g. ?key
-            NSString *key = [[pairs firstObject] DPL_stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-            paramsDict[key] = @"";
+        if (param.length > 0) {
+           NSRange range = [param rangeOfString:@"="];
+            if (range.location == NSNotFound) {
+                // e.g. ?key
+                NSString *key = [param DPL_stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+                paramsDict[key] = @"";
+            }else{
+                // e.g. ?key=value
+                NSString *key = [param substringWithRange:NSMakeRange(0, range.location)];
+                NSString *value = [param substringWithRange:NSMakeRange(range.location+1, param.length - range.location -1)];
+                key = [key DPL_stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+                value = [value DPL_stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+                paramsDict[key] = value;
+            }
         }
     }
     return [paramsDict copy];
